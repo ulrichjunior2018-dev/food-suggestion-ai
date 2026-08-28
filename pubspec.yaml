@@ -12,11 +12,38 @@ dependencies:
   http: ^1.2.0
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
+  shared_preferences: ^2.2.0
+  video_player: ^2.9.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.0
+  flutter_native_splash: ^2.4.0
 
 flutter:
   uses-material-design: true
+
+# App icon generation — run: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  android: true
+  ios: true
+  # iOS rejects icons with an alpha channel; flatten it during generation.
+  remove_alpha_ios: true
+  web:
+    generate: true
+    background_color: "#FBF6EF"
+    theme_color: "#C1502E"
+
+# Launch screen generation — run: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#FBF6EF"
+  image: assets/icon/splash_logo.png
+  android: true
+  ios: true
+  web: true
+  android_12:
+    image: assets/icon/splash_logo.png
+    color: "#FBF6EF"

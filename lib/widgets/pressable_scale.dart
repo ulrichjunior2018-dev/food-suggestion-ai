@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 
 /// Wraps any child in genuine spring-physics feedback: a subtle lift on
 /// hover (desktop/web) and a compress-then-overshoot-back on press,
@@ -20,11 +21,20 @@ class PressableScale extends StatefulWidget {
   final double pressScale;
   final double hoverScale;
 
+  /// Fires a selection tick on press. On by default: because every
+  /// button, chip and card in the app is already wrapped in this widget,
+  /// enabling it here gives the whole app haptics from one place rather
+  /// than sprinkling HapticFeedback calls across forty call sites.
+  /// No-op on platforms without a taptic engine, so web and desktop are
+  /// unaffected.
+  final bool haptic;
+
   const PressableScale({
     super.key,
     required this.child,
     this.pressScale = 0.95,
     this.hoverScale = 1.02,
+    this.haptic = true,
   });
 
   @override
@@ -69,6 +79,7 @@ class _PressableScaleState extends State<PressableScale>
       },
       child: Listener(
         onPointerDown: (_) {
+          if (widget.haptic) HapticFeedback.selectionClick();
           _pressed = true;
           _retarget();
         },

@@ -34,7 +34,7 @@ class PreferenceChip extends StatelessWidget {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? AppColors.terracotta : Colors.white,
+          color: selected ? AppColors.terracotta : AppColors.card,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: selected ? AppColors.terracotta : AppColors.tan,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../l10n/strings.dart';
 import '../theme/app_theme.dart';
 
 /// A loading view that cycles through short status phrases and gently
@@ -15,12 +16,8 @@ class LoadingState extends StatefulWidget {
 
 class _LoadingStateState extends State<LoadingState>
     with SingleTickerProviderStateMixin {
-  static const _phrases = [
-    'Simmering some ideas...',
-    'Tasting a few flavors...',
-    'Weighing your cravings...',
-    'Plating your picks...',
-  ];
+
+  List<String> get _phrases => S.loadingPhrases;
 
   int _phraseIndex = 0;
   Timer? _timer;

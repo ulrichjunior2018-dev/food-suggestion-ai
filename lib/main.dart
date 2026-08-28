@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 
-import 'screens/onboarding_screen.dart';
+import 'l10n/strings.dart';
+import 'screens/home_shell.dart';
+import 'services/favorites_service.dart';
+import 'services/profile_service.dart';
 import 'theme/app_theme.dart';
-import 'widgets/premium_route.dart';
-import 'widgets/pressable_scale.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Restore everything persisted before first paint: bookmark state and
+  // theme are correct immediately rather than flickering in, and the very
+  // first suggestion request already carries the user's learned profile.
+  await Future.wait([
+    FavoritesService.instance.load(),
+    ProfileService.instance.load(),
+    AppTheme.load(),
+    S.load(),
+  ]);
   runApp(const FoodSuggestionApp());
 }
 
@@ -14,76 +25,44 @@ class FoodSuggestionApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Food Suggestion AI',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      home: const WelcomeScreen(),
-    );
-  }
-}
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: S.language,
+      builder: (context, language, __) {
+        return ValueListenableBuilder<ThemeMode>(
+          valueListenable: AppTheme.mode,
+          builder: (context, themeMode, ___) {
+            // Resolve brightness before any widget reads AppColors, so the
+            // first frame after a toggle is already correct.
+            AppTheme.applyMode(context);
 
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+            return MaterialApp(
+              title: S.appTitle,
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: themeMode,
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Spacer(),
-              Container(
-                width: 72,
-                height: 72,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [AppColors.gold, AppColors.terracotta],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: const Center(
-                  child: Text('🍽️', style: TextStyle(fontSize: 32)),
-                ),
+              // Screens read strings and surface colours as static values
+              // (S.getStarted, AppColors.card) rather than through an
+              // InheritedWidget, which is what keeps ~140 call sites free
+              // of a BuildContext. The cost is that Flutter has no way to
+              // know those values changed: a const child compares equal on
+              // rebuild and its whole subtree is skipped, so a toggle would
+              // flip the value in memory and repaint nothing.
+              //
+              // Keying the shell on both settings forces a genuine remount
+              // when either changes. The tradeoff is that the tab stacks
+              // reset — acceptable for an action taken rarely and
+              // deliberately, and far cheaper than threading
+              // Theme.of(context) and a Localizations lookup through every
+              // widget in the app.
+              home: HomeShell(
+                key: ValueKey('$language|$themeMode|${AppColors.isDark}'),
               ),
-              const SizedBox(height: 28),
-              Text(
-                'What should\nI eat?',
-                style: theme.textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'Answer a few quick questions and get personalized food '
-                'suggestions powered by AI — matched to your diet, mood, '
-                'and budget. Not happy with the picks? Ask for spicier, '
-                'cheaper, or something else entirely.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: AppColors.charcoal.withValues(alpha: 0.7),
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: PressableScale(
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).push(
-                      premiumRoute(const OnboardingScreen()),
-                    ),
-                    child: const Text('Get Started'),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }

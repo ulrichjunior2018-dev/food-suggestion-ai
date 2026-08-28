@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/strings.dart';
 import '../models/user_preferences.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ambient_background.dart';
+import '../widgets/animated_entrance.dart';
 import '../widgets/preference_chip.dart';
 import '../widgets/premium_route.dart';
 import '../widgets/pressable_scale.dart';
@@ -26,12 +29,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String _mood = '';
   String _budget = '';
 
-  static const _steps = [
-    'Dietary needs',
-    'Favorite cuisines',
-    'What are you craving?',
-    'Budget & time',
-  ];
+
+  List<String> get _steps => S.steps;
+  List<String> get _dietaryOptions => S.dietaryOptions;
+  List<String> get _cuisineOptions => S.cuisineOptions;
+  List<String> get _moodOptions => S.moodOptions;
+  List<String> get _budgetOptions => S.budgetOptions;
 
   static const _stepIcons = [
     Icons.eco_outlined,
@@ -40,39 +43,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     Icons.payments_outlined,
   ];
 
-  static const _dietaryOptions = [
-    'No restrictions',
-    'Vegetarian',
-    'Vegan',
-    'Halal',
-    'Gluten-Free',
-    'Dairy-Free',
-  ];
 
-  static const _cuisineOptions = [
-    'Any',
-    'Italian',
-    'Asian',
-    'Mexican',
-    'American',
-    'African',
-    'Mediterranean',
-    'Indian',
-  ];
 
-  static const _moodOptions = [
-    'Comfort food',
-    'Light & fresh',
-    'Spicy',
-    'Sweet',
-    'Something new',
-  ];
 
-  static const _budgetOptions = [
-    'Quick & cheap',
-    'Moderate',
-    'Willing to splurge',
-  ];
 
   bool get _canAdvance {
     switch (_step) {
@@ -126,8 +99,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tell us what you\'re craving')),
-      body: SafeArea(
+      appBar: AppBar(title: Text(S.onboardingTitle)),
+      body: AmbientBackground(
+        child: SafeArea(
         child: Column(
           children: [
             Padding(
@@ -141,7 +115,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   _buildStep(
                     title: _steps[0],
-                    subtitle: 'Any foods we should avoid?',
+                    subtitle: S.stepSubtitles[0],
                     child: _singleChoiceWrap(
                       options: _dietaryOptions,
                       selected: _dietaryRestriction,
@@ -150,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   _buildStep(
                     title: _steps[1],
-                    subtitle: 'Pick as many as you like',
+                    subtitle: S.stepSubtitles[1],
                     child: _multiChoiceWrap(
                       options: _cuisineOptions,
                       selected: _cuisines,
@@ -163,7 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   _buildStep(
                     title: _steps[2],
-                    subtitle: 'What kind of meal do you want right now?',
+                    subtitle: S.stepSubtitles[2],
                     child: _singleChoiceWrap(
                       options: _moodOptions,
                       selected: _mood,
@@ -172,7 +146,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   _buildStep(
                     title: _steps[3],
-                    subtitle: 'How much time or money do you want to spend?',
+                    subtitle: S.stepSubtitles[3],
                     child: _singleChoiceWrap(
                       options: _budgetOptions,
                       selected: _budget,
@@ -183,14 +157,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 92),
               child: Row(
                 children: [
                   if (_step > 0)
                     PressableScale(
                       child: OutlinedButton(
                         onPressed: _back,
-                        child: const Text('Back'),
+                        child: Text(S.back),
                       ),
                     ),
                   const Spacer(),
@@ -198,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: FilledButton(
                       onPressed: _canAdvance ? _next : null,
                       child: Text(
-                        _step == _steps.length - 1 ? 'Get My Suggestions' : 'Next',
+                        _step == _steps.length - 1 ? S.getMySuggestions : S.next,
                       ),
                     ),
                   ),
@@ -206,6 +180,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -216,24 +191,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     required String subtitle,
     required Widget child,
   }) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppColors.charcoal.withValues(alpha: 0.65)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedEntrance(
+                  key: ValueKey('title-' + title),
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                AnimatedEntrance(
+                  key: ValueKey('sub-' + title),
+                  delay: const Duration(milliseconds: 70),
+                  child: Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.charcoal.withValues(alpha: 0.62),
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                AnimatedEntrance(
+                  key: ValueKey('opts-' + title),
+                  delay: const Duration(milliseconds: 140),
+                  child: child,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 22),
-          child,
-        ],
-      ),
+        );
+      },
     );
   }
 
