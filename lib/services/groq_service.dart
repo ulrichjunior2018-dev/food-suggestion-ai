@@ -126,7 +126,7 @@ Budget/time: ${prefs.budget}
               // Caps worst-case generation length so a request can't hang
               // waiting on tokens well past what 3 short suggestions need —
               // keeps the "fast, swift" feel even if the model gets chatty.
-              'max_tokens': 700,
+              'max_tokens': 2048,
             }),
           )
           // Tight enough that a stalled connection fails fast into the
