@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_preferences.dart';
+import '../theme/app_theme.dart';
 import '../widgets/preference_chip.dart';
+import '../widgets/premium_route.dart';
+import '../widgets/pressable_scale.dart';
+import '../widgets/step_progress.dart';
 import 'suggestion_screen.dart';
 
 /// A 4-step questionnaire that builds up a [UserPreferences] object,
@@ -27,6 +31,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     'Favorite cuisines',
     'What are you craving?',
     'Budget & time',
+  ];
+
+  static const _stepIcons = [
+    Icons.eco_outlined,
+    Icons.public,
+    Icons.mood_outlined,
+    Icons.payments_outlined,
   ];
 
   static const _dietaryOptions = [
@@ -86,8 +97,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     setState(() => _step++);
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
     );
   }
 
@@ -95,8 +106,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_step == 0) return;
     setState(() => _step--);
     _pageController.previousPage(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
     );
   }
 
@@ -108,7 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       budget: _budget,
     );
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => SuggestionScreen(preferences: prefs)),
+      premiumRoute(SuggestionScreen(preferences: prefs)),
     );
   }
 
@@ -120,12 +131,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: LinearProgressIndicator(
-                value: (_step + 1) / _steps.length,
-                minHeight: 6,
-                borderRadius: BorderRadius.circular(3),
-              ),
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+              child: StepProgress(currentStep: _step, stepIcons: _stepIcons),
             ),
             Expanded(
               child: PageView(
@@ -180,15 +187,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 children: [
                   if (_step > 0)
-                    OutlinedButton(
-                      onPressed: _back,
-                      child: const Text('Back'),
+                    PressableScale(
+                      child: OutlinedButton(
+                        onPressed: _back,
+                        child: const Text('Back'),
+                      ),
                     ),
                   const Spacer(),
-                  FilledButton(
-                    onPressed: _canAdvance ? _next : null,
-                    child: Text(
-                      _step == _steps.length - 1 ? 'Get My Suggestions' : 'Next',
+                  PressableScale(
+                    child: FilledButton(
+                      onPressed: _canAdvance ? _next : null,
+                      child: Text(
+                        _step == _steps.length - 1 ? 'Get My Suggestions' : 'Next',
+                      ),
                     ),
                   ),
                 ],
@@ -206,14 +217,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     required Widget child,
   }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 6),
-          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 20),
+          Text(
+            subtitle,
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.charcoal.withValues(alpha: 0.65)),
+          ),
+          const SizedBox(height: 22),
           child,
         ],
       ),

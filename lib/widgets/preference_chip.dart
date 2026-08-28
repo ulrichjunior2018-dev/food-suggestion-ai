@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+import 'pressable_scale.dart';
+
 /// A single selectable chip used throughout onboarding. Kept as one
 /// reusable widget instead of duplicating ChoiceChip styling on every
-/// screen.
+/// screen. Styled as a full pill against the app's warm palette rather
+/// than default Material chip colors, with real spring-physics press/hover
+/// feedback via [PressableScale] instead of a flat, static tap target.
 class PreferenceChip extends StatelessWidget {
   final String label;
   final bool selected;
@@ -17,22 +22,45 @@ class PreferenceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ChoiceChip(
-      label: Text(label),
+    return Semantics(
+      button: true,
       selected: selected,
-      onSelected: (_) => onTap(),
-      showCheckmark: false,
-      labelStyle: TextStyle(
-        color: selected ? Colors.white : theme.colorScheme.onSurface,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+      label: label,
+      child: PressableScale(
+      child: GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.terracotta : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: selected ? AppColors.terracotta : AppColors.tan,
+            width: 1.4,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: AppColors.terracotta.withValues(alpha: 0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? Colors.white : AppColors.charcoal,
+          ),
+        ),
       ),
-      selectedColor: theme.colorScheme.primary,
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      side: BorderSide(
-        color: selected ? theme.colorScheme.primary : Colors.transparent,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      ),
     );
   }
 }
